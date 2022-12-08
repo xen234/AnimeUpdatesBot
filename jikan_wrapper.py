@@ -64,6 +64,24 @@ class JikanWrapper:
             page += 1
         return anime_list
 
+    def scheduled_on_week_day(self, week_day: str) -> List[Anime]:
+        page = 1
+        url = self.base_url + f"schedules/{week_day}?page={page}"
+        response = JikanWrapper._make_request(url)
+        response.raise_for_status()
+        data = response.json()
+        last_page = data["pagination"]["last_visible_page"]
+        anime_list = []
+        while page <= last_page:
+            url = self.base_url + f"schedules/{week_day}?page={page}"
+            response = JikanWrapper._make_request(url)
+            response.raise_for_status()
+            data = response.json()
+            for anime in data["data"]:
+                anime_list.append(Anime(anime["mal_id"], anime["url"], anime["title"], anime["broadcast"]["string"]))
+            page += 1
+        return anime_list
+
     def parse_url(self, url: str) -> Tuple[bool, str]:
         if not url.startswith(self.base_anime_url):
             return False, "wrong prefix"
