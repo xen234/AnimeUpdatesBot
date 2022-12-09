@@ -39,15 +39,19 @@ class JsonLikeDatabase:
             json.dump(data, base)
 
     def add_user(self, user_id: str):
+        user_id = str(user_id)
         user_list = self._read_from_db()
         user_subscriptions = []
         user_list["users"][user_id] = user_subscriptions
         self._write_to_db(user_list)
 
     def subscribe(self, user_id: str, anime_url: str):
+        user_id = str(user_id)
+        anime_url = str(anime_url)
         user_list = self._read_from_db()
         if user_id not in user_list["users"]:
             self.add_user(user_id)
+            user_list = self._read_from_db()
         if anime_url in user_list["users"][user_id]:
             return False, "anime already added"
         user_list["users"][user_id].append(anime_url)
@@ -55,9 +59,12 @@ class JsonLikeDatabase:
         return True, None
 
     def unsubscribe(self, user_id: str, anime_url: str):
+        user_id = str(user_id)
+        anime_url = str(anime_url)
         user_list = self._read_from_db()
         if user_id not in user_list["users"]:
             self.add_user(user_id)
+            user_list = self._read_from_db()
         if anime_url not in user_list["users"][user_id]:
             return False, "anime not found"
         user_list["users"][user_id].remove(anime_url)
@@ -65,9 +72,10 @@ class JsonLikeDatabase:
         return True, None
 
     def users_subscriptions(self, user_id: str):
+        user_id = str(user_id)
         user_list = self._read_from_db()
         if user_id not in user_list["users"]:
             self.add_user(user_id)
-        print(user_list["users"])
-        anime_list = user_list["users"][str(user_id)]
+            user_list = self._read_from_db()
+        anime_list = user_list["users"][user_id]
         return True, anime_list
