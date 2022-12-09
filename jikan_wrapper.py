@@ -1,7 +1,7 @@
 import requests
 import time
 import re
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 
 class AnimeEpisode:
@@ -31,56 +31,72 @@ class JikanWrapper:
             time.sleep(1)
             response = requests.get(url)
         return response
-
-    def last_anime_episode(self, anime_id: int) -> AnimeEpisode:
+    
+    @staticmethod
+    def _make_error_text(status_code) -> str:
+        if status_code == 404:
+            return "page not found"
+        if status_code >= 500:
+            return "server error"
+        if status_code == 429:
+            return "too many requests"
+        return "unknown error"
+    
+    def last_anime_episode(self, anime_id: int) -> Tuple[bool, Union[AnimeEpisode, str]]:
         url = self.base_url + f"anime/{anime_id}/episodes?page=1"
         response = JikanWrapper._make_request(url)
-        response.raise_for_status()
+        if not response.ok:
+            return False, self._make_error_text(response.status_code)
         data = response.json()
         last_page = data["pagination"]["last_visible_page"]
         if last_page > 1:
             url = self.base_url + f"anime/{anime_id}/episodes?page={last_page}"
             response = JikanWrapper._make_request(url)
-            response.raise_for_status()
+            if not response.ok:
+                return False, self._make_error_text(response.status_code)
             data = response.json()
         last_episode = data["data"][-1]
-        return AnimeEpisode(last_episode["url"], last_episode["title"], last_episode["aired"])
+        return True, AnimeEpisode(last_episode["url"], last_episode["title"], last_episode["aired"])
 
-    def scheduled_on_week(self) -> List[Anime]:
+    def scheduled_on_week(self) -> Tuple[bool, Union[List[Anime], str]]:
         page = 1
         url = self.base_url + f"schedules?page={page}"
         response = JikanWrapper._make_request(url)
-        response.raise_for_status()
+        if not response.ok:
+            return False, self._make_error_text(response.status_code)
         data = response.json()
         last_page = data["pagination"]["last_visible_page"]
         anime_list = []
         while page <= last_page:
             url = self.base_url + f"schedules?page={page}"
             response = JikanWrapper._make_request(url)
-            response.raise_for_status()
+            if not response.ok:
+                return False, self._make_error_text(response.status_code)
             data = response.json()
             for anime in data["data"]:
                 anime_list.append(Anime(anime["mal_id"], anime["url"], anime["title"], anime["broadcast"]["string"]))
             page += 1
-        return anime_list
+        return True, anime_list
 
-    def scheduled_on_week_day(self, week_day: str) -> List[Anime]:
+    def scheduled_on_week_day(self, week_day: str) -> Tuple[bool, Union[List[Anime], str]]:
         page = 1
         url = self.base_url + f"schedules/{week_day}?page={page}"
         response = JikanWrapper._make_request(url)
-        response.raise_for_status()
+        if not response.ok:
+            return False, self._make_error_text(response.status_code)
         data = response.json()
         last_page = data["pagination"]["last_visible_page"]
         anime_list = []
         while page <= last_page:
             url = self.base_url + f"schedules/{week_day}?page={page}"
             response = JikanWrapper._make_request(url)
-            response.raise_for_status()
+            if not response.ok:
+                return False, self._make_error_text(response.status_code)
             data = response.json()
             for anime in data["data"]:
                 anime_list.append(Anime(anime["mal_id"], anime["url"], anime["title"], anime["broadcast"]["string"]))
             page += 1
-        return anime_list
+        return True, anime_list
 
     def parse_url(self, url: str) -> Tuple[bool, str]:
         if not url.startswith(self.base_anime_url):
