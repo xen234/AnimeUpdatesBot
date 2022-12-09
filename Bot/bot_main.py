@@ -27,7 +27,10 @@ async def process_help_command(message: types.Message):
 
 @dp.message_handler(commands=['list'])
 async def process_list_command(message: types.Message):
-    anime_list = database.get_tg_subscriptions_by_chat(message.from_user.id)
+    ok, content = database.users_subscriptions(message.from_user.id)
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
+    anime_list = content
     await message.reply("Всего отслеживаемых аниме: {}\n".format(len(anime_list)))
     for anime_id in anime_list:
         await send_message(message.from_user.id, api.get_url_by_id(anime_id))
@@ -35,12 +38,19 @@ async def process_list_command(message: types.Message):
 
 @dp.message_handler(commands=['weekly'])
 async def process_weekly_command(message: types.Message):
-    anime_list = database.get_tg_subscriptions_by_chat(message.from_user.id)
+    ok, content = database.users_subscriptions(message.from_user.id)
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
+    anime_list = content
+    await message.reply("Всего отслеживаемых аниме: {}\n".format(len(anime_list)))
     for weekday in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
         weekday_anime_titles = list()
-        anime_on_weekday = api.scheduled_on_week_day(weekday)
+        ok, content = api.scheduled_on_week_day(weekday)
+        if not ok:
+            await send_message(message.from_user.id, 'Error occurred: ' + content)
+            return
 
-        for anime in anime_on_weekday:
+        for anime in content:
             if anime.id in anime_list:
                 weekday_anime_titles.append((anime.title, api.get_url_by_id(int(anime.id))))
 
@@ -66,8 +76,14 @@ async def process_subscribe_command(message: types.Message):
     #     return await message.reply(f"Вы неверно ввели ссылку. Попробуйте еще раз :)")
 
     # check if suitable
-    anime_id = int(api.parse_url(input_url[1])[1])
-    database.create_subscription(message.from_user.id, anime_id)
+    ok, content = api.parse_url(input_url[1])
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
+        return
+    anime_id = int(content)
+    ok, content = database.subscribe(message.from_user.id, anime_id)
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
     await message.reply(f"Вы успешно подписались на обновления по следующей ссылке: {input_url[1]}")
 
 
@@ -84,8 +100,14 @@ async def process_cancel_subscription_command(message: types.Message):
     #     return await message.reply(f"Вы неверно ввели ссылку. Попробуйте еще раз :)")
 
     # check if suitable
-    anime_id = int(api.parse_url(input_url[1])[1])
-    database.remove_tg_subscription(message.from_user.id, anime_id)
+    ok, content = api.parse_url(input_url[1])
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
+        return
+    anime_id = int(content)
+    ok, content = database.unsubscribe(message.from_user.id, anime_id)
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
     await message.reply(f"Вы успешно отписались от обновлений по следующей ссылке: {input_url[1]}")
 
 
