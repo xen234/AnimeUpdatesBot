@@ -58,6 +58,9 @@ async def process_weekly_command(message: types.Message):
         if len(message_weekday):
             message_from_bot += weekday.upper() + ':\n' + message_weekday
 
+    if not len(message_from_bot):
+        await send_message(message.from_user.id, 'Календарь пуст - нет отслеживаемых аниме')
+        return
     await send_message(message.from_user.id, message_from_bot)
 # ----------------подписка на анимы---------------------------
 

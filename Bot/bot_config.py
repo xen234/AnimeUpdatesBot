@@ -4,8 +4,8 @@ from os import environ
 from aiogram import Bot
 from aiogram.dispatcher import Dispatcher
 
-from database import Database, JsonLikeDatabase
 from api import JikanWrapper
+from database import JsonLikeDatabase
 
 bot = Bot(token=environ['TOKEN'])
 dp = Dispatcher(bot)
