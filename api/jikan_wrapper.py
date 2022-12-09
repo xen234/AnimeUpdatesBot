@@ -4,20 +4,19 @@ from typing import List, Tuple, Union
 
 import requests
 
-
-class AnimeEpisode:
-    def __init__(self, url: str, title: str, aired: str):
-        self.url = url
-        self.title = title
-        self.aired = time.strptime(aired, "%Y-%m-%dT%H:%M:%S+00:00")
-
-
 class Anime:
     def __init__(self, _id: str, url: str, title: str, broadcast: str):
         self.id = _id
         self.url = url
         self.title = title
         self.broadcast = broadcast
+
+
+class AnimeEpisode:
+    def __init__(self, url: str, title: str, aired: str):
+        self.url = url
+        self.title = title
+        self.aired = time.strptime(aired, "%Y-%m-%dT%H:%M:%S+00:00")
 
 
 class JikanWrapper:
