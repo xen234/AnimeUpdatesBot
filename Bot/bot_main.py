@@ -1,21 +1,23 @@
-from send_message_function import send_message
 import re
-from bot_config import dp
+
 from aiogram import types
 from aiogram.utils import executor
+
+from bot_config import dp, database, api
+from send_message_function import send_message
 
 
 @dp.message_handler(commands=['start'])
 async def process_start_command(message: types.Message):
-    await message.reply("Для просмотра доступных команд отправь /help ")
+    await message.reply("Привет! Для просмотра доступных команд отправь /help ")
 
 
 @dp.message_handler(commands=['help'])
 async def process_help_command(message: types.Message):
     await message.reply("В этом боте ты можешь выполнить следующие команды:\n"
-                        "/list - посмотреть список отслеживаемых аниме\n"
                         "/subscribe URL RANGE - оформить подписку на обновления аниме по ссылке\n"
                         "/unsubscribe URL RANGE - оформить подписку на обновления аниме по ссылке\n"
+                        "/list - посмотреть список отслеживаемых аниме\n"
                         "/weekly - посмотреть расписание выхода эпизодов отслеживаемых аниме на неделе\n"
                         "В командах subscribe и unsubscribe необходимо передать на вход ссылку "
                         "на интересующее аниме с ресурса MyAnimeList в следующем формате:\n"
@@ -24,11 +26,42 @@ async def process_help_command(message: types.Message):
 
 
 @dp.message_handler(commands=['list'])
-async def process_info_command(message: types.Message):
-    await message.reply(f"Всего отслеживаемых аниме: "
-                        f"\n")
+async def process_list_command(message: types.Message):
+    ok, content = database.users_subscriptions(str(message.from_user.id))
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
+    anime_list = content
+    await message.reply("Всего отслеживаемых аниме: {}\n".format(len(anime_list)))
+    for anime_id in anime_list:
+        await send_message(message.from_user.id, api.get_url_by_id(anime_id))
 
 
+@dp.message_handler(commands=['weekly'])
+async def process_weekly_command(message: types.Message):
+    ok, content = database.users_subscriptions(str(message.from_user.id))
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
+    anime_list = content
+    await message.reply("Всего отслеживаемых аниме: {}\n".format(len(anime_list)))
+    message_from_bot = ''
+    for weekday in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
+        ok, content = api.scheduled_on_week_day(weekday)
+        if not ok:
+            await send_message(message.from_user.id, 'Error occurred: ' + content)
+            return
+
+        message_weekday = ''
+        for anime in content:
+            if str(anime.id) in anime_list:
+                message_weekday += anime.title + '\t' + api.get_url_by_id(anime.id) + '\n'
+
+        if len(message_weekday):
+            message_from_bot += weekday.upper() + ':\n' + message_weekday
+
+    if not len(message_from_bot):
+        await send_message(message.from_user.id, 'Календарь пуст - нет отслеживаемых аниме')
+        return
+    await send_message(message.from_user.id, message_from_bot)
 # ----------------подписка на анимы---------------------------
 
 @dp.message_handler(commands=['subscribe'])
@@ -37,16 +70,15 @@ async def process_subscribe_command(message: types.Message):
                         f" воспользовавшись командой /help")
     input_url = re.split(' ', message.text, maxsplit=3)
 
-    try:
-        input_url = int(input_url[1])
-        if 'myanimelist' not in input_url:
-            raise ValueError
-    except ValueError:
-        return await message.reply(f"Вы неверно ввели ссылку. Попробуйте еще раз :)")
-
-    # check if suitable
-    database.create_subscription(message.from_user.id, input_url)
-    await message.reply(f"Вы успешно подписались на обновления по следующей ссылке: {input_url}")
+    ok, content = api.parse_url(input_url[1])
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
+        return
+    anime_id = content
+    ok, content = database.subscribe(str(message.from_user.id), anime_id)
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
+    await message.reply(f"Вы успешно подписались на обновления по следующей ссылке: {input_url[1]}")
 
 
 @dp.message_handler(commands=['unsubscribe'])
@@ -54,28 +86,17 @@ async def process_cancel_subscription_command(message: types.Message):
     await message.reply(f"На вход необходимо подать ссылку. Подробности можно узнать,"
                         f" воспользовавшись командой /help")
     input_url = re.split(' ', message.text, maxsplit=3)
-    try:
-        input_url = int(input_url[1])
-        if 'myanimelist' not in input_url:
-            raise ValueError
-    except ValueError:
-        return await message.reply(f"Вы неверно ввели ссылку. Попробуйте еще раз :)")
 
-    # check if suitable
-    database.remove_tg_subscription(message.from_user.id, input_url)
-    await message.reply(f"Вы успешно отписались от обновлений по следующей ссылке: {input_url}")
-
-
-@dp.message_handler(lambda message: len(database.get_tg_subscriptions_by_chat(message.chat.id)))
-async def process_forward_command(message: types.Message):
-    subscriptions = database.get_tg_subscriptions_by_chat(message.chat.id)
-    print(subscriptions)
-    if message_classifier.is_important(message.text):
-        for user in subscriptions:
-            await send_message(user.user_id, message.text)
+    ok, content = api.parse_url(input_url[1])
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
+        return
+    anime_id = content
+    ok, content = database.unsubscribe(str(message.from_user.id), anime_id)
+    if not ok:
+        await send_message(message.from_user.id, 'Error occurred: ' + content)
+    await message.reply(f"Вы успешно отписались от обновлений по следующей ссылке: {input_url[1]}")
 
 
 if __name__ == '__main__':
     executor.start_polling(dp)
-
-    
