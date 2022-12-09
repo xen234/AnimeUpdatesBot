@@ -27,7 +27,7 @@ async def process_help_command(message: types.Message):
 
 @dp.message_handler(commands=['list'])
 async def process_list_command(message: types.Message):
-    ok, content = database.users_subscriptions(message.from_user.id)
+    ok, content = database.users_subscriptions(str(message.from_user.id))
     if not ok:
         await send_message(message.from_user.id, 'Error occurred: ' + content)
     anime_list = content
@@ -38,28 +38,27 @@ async def process_list_command(message: types.Message):
 
 @dp.message_handler(commands=['weekly'])
 async def process_weekly_command(message: types.Message):
-    ok, content = database.users_subscriptions(message.from_user.id)
+    ok, content = database.users_subscriptions(str(message.from_user.id))
     if not ok:
         await send_message(message.from_user.id, 'Error occurred: ' + content)
     anime_list = content
     await message.reply("Всего отслеживаемых аниме: {}\n".format(len(anime_list)))
+    message_from_bot = ''
     for weekday in ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']:
-        weekday_anime_titles = list()
         ok, content = api.scheduled_on_week_day(weekday)
         if not ok:
             await send_message(message.from_user.id, 'Error occurred: ' + content)
             return
 
+        message_weekday = ''
         for anime in content:
-            if anime.id in anime_list:
-                weekday_anime_titles.append((anime.title, api.get_url_by_id(int(anime.id))))
+            if str(anime.id) in anime_list:
+                message_weekday += anime.title + '\t' + api.get_url_by_id(anime.id) + '\n'
 
-        if len(weekday_anime_titles):
-            await send_message(message.from_user.id, weekday.upper())
-            for title, link in weekday_anime_titles:
-                await send_message(message.from_user.id, title + '\t' + link)
+        if len(message_weekday):
+            message_from_bot += weekday.upper() + ':\n' + message_weekday
 
-
+    await send_message(message.from_user.id, message_from_bot)
 # ----------------подписка на анимы---------------------------
 
 @dp.message_handler(commands=['subscribe'])
@@ -68,20 +67,12 @@ async def process_subscribe_command(message: types.Message):
                         f" воспользовавшись командой /help")
     input_url = re.split(' ', message.text, maxsplit=3)
 
-    # try:
-    #     input_url = input_url[1]
-    #     if 'myanimelist' not in input_url:
-    #         raise ValueError
-    # except ValueError:
-    #     return await message.reply(f"Вы неверно ввели ссылку. Попробуйте еще раз :)")
-
-    # check if suitable
     ok, content = api.parse_url(input_url[1])
     if not ok:
         await send_message(message.from_user.id, 'Error occurred: ' + content)
         return
-    anime_id = int(content)
-    ok, content = database.subscribe(message.from_user.id, anime_id)
+    anime_id = content
+    ok, content = database.subscribe(str(message.from_user.id), anime_id)
     if not ok:
         await send_message(message.from_user.id, 'Error occurred: ' + content)
     await message.reply(f"Вы успешно подписались на обновления по следующей ссылке: {input_url[1]}")
@@ -92,20 +83,13 @@ async def process_cancel_subscription_command(message: types.Message):
     await message.reply(f"На вход необходимо подать ссылку. Подробности можно узнать,"
                         f" воспользовавшись командой /help")
     input_url = re.split(' ', message.text, maxsplit=3)
-    # try:
-    #     input_url = int(input_url[1])
-    #     if 'myanimelist' not in input_url:
-    #         raise ValueError
-    # except ValueError:
-    #     return await message.reply(f"Вы неверно ввели ссылку. Попробуйте еще раз :)")
 
-    # check if suitable
     ok, content = api.parse_url(input_url[1])
     if not ok:
         await send_message(message.from_user.id, 'Error occurred: ' + content)
         return
-    anime_id = int(content)
-    ok, content = database.unsubscribe(message.from_user.id, anime_id)
+    anime_id = content
+    ok, content = database.unsubscribe(str(message.from_user.id), anime_id)
     if not ok:
         await send_message(message.from_user.id, 'Error occurred: ' + content)
     await message.reply(f"Вы успешно отписались от обновлений по следующей ссылке: {input_url[1]}")
