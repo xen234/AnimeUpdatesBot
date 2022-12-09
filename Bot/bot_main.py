@@ -1,13 +1,8 @@
 from send_message_function import send_message
-import asyncio
-import logging
 import re
 from bot_config import dp
-from aiogram import Bot, types
-from aiogram.dispatcher import Dispatcher
-from aiogram.utils import executor, exceptions
-from config import TOKEN
-
+from aiogram import types
+from aiogram.utils import executor
 
 
 @dp.message_handler(commands=['start'])
@@ -22,15 +17,17 @@ async def process_help_command(message: types.Message):
                         "/subscribe URL RANGE - оформить подписку на обновления аниме по ссылке\n"
                         "/unsubscribe URL RANGE - оформить подписку на обновления аниме по ссылке\n"
                         "/weekly - посмотреть расписание выхода эпизодов отслеживаемых аниме на неделе\n"
-                        "В командах subscribe и unsubscribe необходимо передать на вход ссылку"
-                        "на интересующее аниме с ресурса MyAnimeList в следующем формате: https://myanimelist.net/anime/44511/"
-                        " или https://myanimelist.net/anime/44511/Chainsaw_Man")
+                        "В командах subscribe и unsubscribe необходимо передать на вход ссылку "
+                        "на интересующее аниме с ресурса MyAnimeList в следующем формате:\n"
+                        "https://myanimelist.net/anime/44511/ "
+                        "или https://myanimelist.net/anime/44511/Chainsaw_Man")
 
 
 @dp.message_handler(commands=['list'])
 async def process_info_command(message: types.Message):
     await message.reply(f"Всего отслеживаемых аниме: "
                         f"\n")
+
 
 # ----------------подписка на анимы---------------------------
 
@@ -80,3 +77,5 @@ async def process_forward_command(message: types.Message):
 
 if __name__ == '__main__':
     executor.start_polling(dp)
+
+    
