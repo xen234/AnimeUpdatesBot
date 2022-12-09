@@ -76,6 +76,6 @@ class JsonLikeDatabase:
         user_list = self._read_from_db()
         if user_id not in user_list["users"]:
             self.add_user(user_id)
-            user_list = self._read_from_db()
+        user_list = self._read_from_db()
         anime_list = user_list["users"][user_id]
         return True, anime_list
