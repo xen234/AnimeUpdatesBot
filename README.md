@@ -8,6 +8,10 @@
 
 [Логика бота](https://docs.google.com/document/d/1RyHHrPVLukMPLZlpQ1GfLx7Ro0HaDdRLbManZElRExY/edit?usp=sharing)
 
+[Достигнутые результаты](AnimeUpdResults.pdf)
+
+[Схема базы данных](db_scheme.jpg)
+
 Используемые ресурсы:
   - [MyAnimeList](https://myanimelist.net/) - "most active online anime + manga community and database"
   - [Jikan API](https://jikan.moe/) - open-source PHP & REST API для MyAnimeList
