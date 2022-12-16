@@ -3,20 +3,7 @@ import time
 import re
 from typing import List, Tuple, Union
 
-
-class AnimeEpisode:
-    def __init__(self, url: str, title: str, aired: str):
-        self.url = url
-        self.title = title
-        self.aired = time.strptime(aired, "%Y-%m-%dT%H:%M:%S+00:00")
-
-
-class Anime:
-    def __init__(self, _id: str, url: str, title: str, broadcast: str):
-        self.id = _id
-        self.url = url
-        self.title = title
-        self.broadcast = broadcast
+from models import Anime, AnimeEpisode
 
 
 class JikanWrapper:
@@ -31,7 +18,7 @@ class JikanWrapper:
             time.sleep(1)
             response = requests.get(url)
         return response
-    
+
     @staticmethod
     def _make_error_text(status_code) -> str:
         if status_code == 404:
@@ -41,7 +28,10 @@ class JikanWrapper:
         if status_code == 429:
             return "too many requests"
         return "unknown error"
-    
+
+    def get_url_by_id(self, anime_id: int) -> str:
+        return self.base_anime_url + str(anime_id) + '/'
+
     def last_anime_episode(self, anime_id: int) -> Tuple[bool, Union[AnimeEpisode, str]]:
         url = self.base_url + f"anime/{anime_id}/episodes?page=1"
         response = JikanWrapper._make_request(url)
@@ -56,7 +46,29 @@ class JikanWrapper:
                 return False, self._make_error_text(response.status_code)
             data = response.json()
         last_episode = data["data"][-1]
-        return True, AnimeEpisode(last_episode["url"], last_episode["title"], last_episode["aired"])
+        return True, AnimeEpisode(last_episode["url"], last_episode["title"], last_episode["aired"],
+                                  last_episode["mal_id"])
+
+    def anime_info(self, anime_id: int) -> Tuple[bool, Union[Anime, str]]:
+        url = self.base_url + f"anime/{anime_id}"
+        response = JikanWrapper._make_request(url)
+        if not response.ok:
+            return False, self._make_error_text(response.status_code)
+        anime = response.json()
+        return True, Anime(anime["mal_id"], anime["url"], anime["title"], anime["broadcast"]["string"])
+
+    def anime_full(self, anime_id: int) -> Tuple[bool, Union[Anime, str]]:
+        url = self.base_url + f"anime/{anime_id}"
+        response = JikanWrapper._make_request(url)
+        if not response.ok:
+            return False, self._make_error_text(response.status_code)
+        data = response.json()
+        anime = data["data"]
+        anime_info = Anime(anime["mal_id"], anime["url"], anime["title"], anime["broadcast"]["string"])
+        ok, last_ep = self.last_anime_episode(anime_id)
+        if ok:
+            anime_info.aired_episodes = last_ep.num
+        return True, anime_info
 
     def scheduled_on_week(self) -> Tuple[bool, Union[List[Anime], str]]:
         page = 1
@@ -112,3 +124,4 @@ class JikanWrapper:
         if response.json()["data"]["type"] != "TV":
             return False, "not a broadcasting anime"
         return True, _id
+
