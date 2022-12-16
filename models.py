@@ -8,6 +8,11 @@ class Anime:
         self.title = title
         self.broadcast = broadcast
         self.aired_episodes = aired_episodes
+    
+    # for testing
+    def __str__(self):
+        return f"id = {self.id}, title = {self.title}\nurl = {self.url}\nbroadcast = {self.broadcast} \n" \
+            + f"aired = {self.aired_episodes}\n"
 
 
 class User:
@@ -15,7 +20,11 @@ class User:
         self.id = _id
         self.name = name
 
-        
+    # for testing
+    def __str__(self):
+        return f"id = {self.id}, name = {self.name}\n"
+
+
 class AnimeEpisode:
     def __init__(self, url: str, title: str, aired: str, number: int):
         self.url = url
