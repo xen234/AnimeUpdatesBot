@@ -124,3 +124,7 @@ class SqlQueries:
     UPDATE anime SET airing = {}
     WHERE id = {};
     """,
+    select_airing_anime = """
+    SELECT * from anime
+    WHERE airing = 1;
+    """,
