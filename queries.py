@@ -117,7 +117,7 @@ class SqlQueries:
     SELECT * FROM anime;
     """,
     update_anime_episodes = """
-    UPDATE anime SET episodes_num = {}
+    UPDATE anime SET last_episode = {}
     WHERE id = {};
     """,
     update_anime_airing_info = """
