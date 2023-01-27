@@ -54,8 +54,9 @@ class JikanWrapper:
         response = JikanWrapper._make_request(url)
         if not response.ok:
             return False, self._make_error_text(response.status_code)
-        anime = response.json()
-        return True, Anime(anime["mal_id"], anime["url"], anime["title"], anime["broadcast"]["string"])
+        anime = response.json()["data"]
+        return True, Anime(anime["mal_id"], anime["url"], anime["title"], anime["broadcast"]["string"], 0,
+                           int(anime["airing"]))
 
     def anime_full(self, anime_id: int) -> Tuple[bool, Union[Anime, str]]:
         url = self.base_url + f"anime/{anime_id}"
@@ -64,7 +65,8 @@ class JikanWrapper:
             return False, self._make_error_text(response.status_code)
         data = response.json()
         anime = data["data"]
-        anime_info = Anime(anime["mal_id"], anime["url"], anime["title"], anime["broadcast"]["string"])
+        anime_info = Anime(anime["mal_id"], anime["url"], anime["title"], anime["broadcast"]["string"], 0,
+                           int(anime["airing"]))
         ok, last_ep = self.last_anime_episode(anime_id)
         if ok:
             anime_info.aired_episodes = last_ep.num
