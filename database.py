@@ -131,9 +131,16 @@ class PostgreDB:
 
     def update_anime_episodes_info(self, anime_id: int, episodes_num: int):
         if not self.anime_exists(anime_id):
-            return 
+            return
         with self.conn.cursor() as cur:
             cur.execute(str.format(*SqlQueries.update_anime_episodes, str(episodes_num), str(anime_id)))
+            self.conn.commit()
+
+    def update_airing_info(self, anime_id: int, airing: int):
+        if not self.anime_exists(anime_id):
+            return
+        with self.conn.cursor() as cur:
+            cur.execute(str.format(*SqlQueries.update_anime_airing_info, str(airing), str(anime_id)))
             self.conn.commit()
     
     def close(self):
