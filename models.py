@@ -2,7 +2,7 @@ import time
 
 
 class Anime:
-    def __init__(self, _id: int, url: str, title: str, broadcast: str, aired_episodes: int = 0, airing: int = 1):
+    def __init__(self, _id: int, url: str, title: str, broadcast: str, aired_episodes: int = 0, airing: int = 0):
         self.id = _id
         self.url = url
         self.title = title
