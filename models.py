@@ -2,17 +2,18 @@ import time
 
 
 class Anime:
-    def __init__(self, _id: int, url: str, title: str, broadcast: str, aired_episodes: int = 0):
+    def __init__(self, _id: int, url: str, title: str, broadcast: str, aired_episodes: int = 0, airing: int = 1):
         self.id = _id
         self.url = url
         self.title = title
         self.broadcast = broadcast
         self.aired_episodes = aired_episodes
+        self.airing = airing
     
     # for testing
     def __str__(self):
         return f"id = {self.id}, title = {self.title}\nurl = {self.url}\nbroadcast = {self.broadcast} \n" \
-            + f"aired = {self.aired_episodes}\n"
+            + f"aired = {self.aired_episodes}\n" + f"airing = {self.airing}"
 
 
 class User:
