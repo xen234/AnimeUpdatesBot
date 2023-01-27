@@ -11,7 +11,7 @@ class SqlQueries:
         url TEXT NOT NULL,
         title TEXT DEFAULT '',
         broadcast TEXT DEFAULT '',
-        last_episode integer DEFAULT 0
+        last_episode integer DEFAULT 0,
         airing integer DEFAULT 0
     );
     """,
@@ -29,7 +29,7 @@ class SqlQueries:
             url TEXT NOT NULL,
             title TEXT DEFAULT '',
             broadcast TEXT DEFAULT '',
-            last_episode integer DEFAULT 0
+            last_episode integer DEFAULT 0,
             airing integer DEFAULT 0
         );
         """,
