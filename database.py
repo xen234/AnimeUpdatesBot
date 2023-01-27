@@ -7,7 +7,7 @@ from typing import List
 class PostgreDB:
     def __init__(self, recreate=False):
         self.conn = psycopg2.connect(
-            database="users", user="postgres", host="localhost", password="password", port=5432)
+            database="postgres", user="postgres", host="localhost", password="password", port=5432)
         if recreate:
             with self.conn.cursor() as cur:
                 cur.execute(*SqlQueries.create_users_table)
@@ -110,6 +110,14 @@ class PostgreDB:
         res = []
         with self.conn.cursor() as cur:
             cur.execute(*SqlQueries.select_all_anime)
+            for i in range(cur.rowcount):
+                res.append(Anime(*cur.fetchone()))
+        return res
+
+    def get_airing_anime(self) -> List[Anime]:
+        res = []
+        with self.conn.cursor() as cur:
+            cur.execute(*SqlQueries.select_airing_anime)
             for i in range(cur.rowcount):
                 res.append(Anime(*cur.fetchone()))
         return res
