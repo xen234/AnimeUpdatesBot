@@ -12,6 +12,7 @@ class SqlQueries:
         title TEXT DEFAULT '',
         broadcast TEXT DEFAULT '',
         last_episode integer DEFAULT 0
+        airing integer DEFAULT 0
     );
     """,
     create_users_table = """
@@ -29,6 +30,7 @@ class SqlQueries:
             title TEXT DEFAULT '',
             broadcast TEXT DEFAULT '',
             last_episode integer DEFAULT 0
+            airing integer DEFAULT 0
         );
         """,
     insert_user = """
@@ -40,8 +42,8 @@ class SqlQueries:
     WHERE id = {};
     """,
     insert_anime = """
-    INSERT INTO anime(id, url, title, broadcast, last_episode)
-    VALUES({}, '{}', '{}', '{}', {});
+    INSERT INTO anime(id, url, title, broadcast, last_episode, airing)
+    VALUES({}, '{}', '{}', '{}', {}, {});
     """,
     find_anime_by_id = """
     SELECT * FROM anime
@@ -116,5 +118,9 @@ class SqlQueries:
     """,
     update_anime_episodes = """
     UPDATE anime SET episodes_num = {}
+    WHERE id = {};
+    """,
+    update_anime_airing_info = """
+    UPDATE anime SET airing = {}
     WHERE id = {};
     """,
