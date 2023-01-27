@@ -114,3 +114,7 @@ class SqlQueries:
     select_all_anime = """
     SELECT * FROM anime;
     """,
+    update_anime_episodes = """
+    UPDATE anime SET episodes_num = {}
+    WHERE id = {};
+    """,
