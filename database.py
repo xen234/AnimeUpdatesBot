@@ -43,7 +43,8 @@ class PostgreDB:
             return
         with self.conn.cursor() as cur:
             cur.execute(str.format(*SqlQueries.insert_anime,
-                                   str(anime.id), anime.url, anime.title, anime.broadcast, anime.aired_episodes))
+                                   str(anime.id), anime.url, anime.title, anime.broadcast, anime.aired_episodes,
+                                   anime.airing))
             self.conn.commit()
 
     def subscribe(self, user_id: int, anime_id: int):
