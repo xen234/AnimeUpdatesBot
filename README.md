@@ -8,7 +8,8 @@
 
 [Логика бота](https://docs.google.com/document/d/1RyHHrPVLukMPLZlpQ1GfLx7Ro0HaDdRLbManZElRExY/edit?usp=sharing)
 
-[Достигнутые результаты](docs/AnimeUpdResults.pdf)
+[Достигнутые результаты (Январь)](docs/AnimeUpdResults.pdf)
+[Результаты и планы (Апрель)](docs/AnimeUpdBot_current_april.pdf)
 
 [Схема базы данных](docs/db_scheme.jpg)
 
